@@ -20,67 +20,7 @@
         renderer.setSize(window.innerWidth, window.innerHeight);
         document.body.appendChild(renderer.domElement);
 
-        // Create custom textures (colors for simplicity)
-        const dirtTexture = new THREE.MeshBasicMaterial({ color: 0x8B4513 });
-        const stoneTexture = new THREE.MeshBasicMaterial({ color: 0x808080 });
-        const treeTexture = new THREE.MeshBasicMaterial({ color: 0x00FF00 });
-
-        // Generate a 30x30 world
-        function createWorld() {
-            for (let x = -15; x < 15; x++) {
-                for (let z = -15; z < 15; z++) {
-                    // Randomly select the type of block (dirt, stone, tree)
-                    const type = Math.random();
-                    let material;
-                    if (type < 0.6) {
-                        material = dirtTexture;
-                    } else if (type < 0.8) {
-                        material = stoneTexture;
-                    } else {
-                        material = treeTexture;
-                    }
-                    const geometry = new THREE.BoxGeometry(1, 1, 1);
-                    const block = new THREE.Mesh(geometry, material);
-                    block.position.set(x, 0, z);
-                    scene.add(block);
-                }
-            }
-        }
-        createWorld();
-
-        // Add player
-        const playerGeometry = new THREE.BoxGeometry(1, 2, 1);
-        const playerMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00 }); // Player color
-        const player = new THREE.Mesh(playerGeometry, playerMaterial);
-        player.position.set(0, 1, 0);
-        scene.add(player);
-
-        camera.position.y = 2;
-        camera.position.z = 10;
-
-        // Movement variables
-        const moveSpeed = 0.1;
-        const keys = {};
-
-        function animate() {
-            requestAnimationFrame(animate);
-
-            // Move the player based on key inputs
-            if (keys['ArrowUp']) player.position.z -= moveSpeed;
-            if (keys['ArrowDown']) player.position.z += moveSpeed;
-            if (keys['ArrowLeft']) player.position.x -= moveSpeed;
-            if (keys['ArrowRight']) player.position.x += moveSpeed;
-
-            camera.position.x = player.position.x;
-            camera.position.z = player.position.z + 5;
-
-            renderer.render(scene, camera);
-        }
-        animate();
-
-        // Handle key inputs
-        document.addEventListener('keydown', (event) => { keys[event.key] = true; });
-        document.addEventListener('keyup', (event) => { keys[event.key] = false; });
-    </script>
-</body>
-</html>
+        // Load textures
+        const textureLoader = new THREE.TextureLoader();
+        const dirtTexture = textureLoader.load('https://th.bing.com/th/id/R.85163ee96bdfdacaf292abb906f34b8f?rik=IlwrH0VJ3ng5%2fw&riu=http%3a%2f%2fwww.rw-designer.com%2ficon-image%2f18771-256x256x32.png&ehk=IFYzBU4CW1FA8DKuNbk0bCjcrNx2kD%2fvdpmNyoHc4t8%3d&risl=&pid=ImgRaw&r=0');
+        const playerTexture = textureLoader.load('data:image/jpeg;base64,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
