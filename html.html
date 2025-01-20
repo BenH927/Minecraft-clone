@@ -3,98 +3,71 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mini Minecraft Clone</title>
+    <title>3D World Generator</title>
     <style>
-        body {
-            margin: 0;
-            overflow: hidden;
-        }
-        canvas {
-            display: block;
-            margin: 0 auto;
-        }
+        body { margin: 0; overflow: hidden; }
+        canvas { display: block; }
     </style>
 </head>
 <body>
     <canvas id="gameCanvas"></canvas>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script>
-        const canvas = document.getElementById('gameCanvas');
-        const gl = canvas.getContext('webgl');
+        // Initialize the scene, camera, and renderer
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('gameCanvas') });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
 
-        if (!gl) {
-            alert('WebGL not supported, falling back on experimental-webgl');
-            gl = canvas.getContext('experimental-webgl');
-        }
-
-        if (!gl) {
-            alert('Your browser does not support WebGL');
-        }
-
-        // Set clear color to black, fully opaque
-        gl.clearColor(0.0, 0.0, 0.0, 1.0);
-        // Clear the color buffer with specified clear color
-        gl.clear(gl.COLOR_BUFFER_BIT);
-
-        function initShaders() {
-            const vertexShaderCode = `
-                attribute vec4 aVertexPosition;
-                void main(void) {
-                    gl_Position = aVertexPosition;
+        // Create the ground (a 30x30 grid of blocks)
+        function createWorld() {
+            for (let x = -15; x < 15; x++) {
+                for (let z = -15; z < 15; z++) {
+                    const geometry = new THREE.BoxGeometry(1, 1, 1);
+                    const material = new THREE.MeshBasicMaterial({ color: 0x8B4513 }); // Dirt color
+                    const block = new THREE.Mesh(geometry, material);
+                    block.position.set(x, 0, z);
+                    scene.add(block);
                 }
-            `;
-
-            const fragmentShaderCode = `
-                void main(void) {
-                    gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
-                }
-            `;
-
-            const vertexShader = gl.createShader(gl.VERTEX_SHADER);
-            gl.shaderSource(vertexShader, vertexShaderCode);
-            gl.compileShader(vertexShader);
-
-            const fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
-            gl.shaderSource(fragmentShader, fragmentShaderCode);
-            gl.compileShader(fragmentShader);
-
-            const shaderProgram = gl.createProgram();
-            gl.attachShader(shaderProgram, vertexShader);
-            gl.attachShader(shaderProgram, fragmentShader);
-            gl.linkProgram(shaderProgram);
-            gl.useProgram(shaderProgram);
-
-            return shaderProgram;
+            }
         }
+        createWorld();
 
-        function initBuffers(gl) {
-            const vertices = [
-                -0.5, -0.5, 0.0,
-                 0.5, -0.5, 0.0,
-                 0.0,  0.5, 0.0
-            ];
+        // Add player
+        const playerGeometry = new THREE.BoxGeometry(1, 2, 1);
+        const playerMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00 }); // Player color
+        const player = new THREE.Mesh(playerGeometry, playerMaterial);
+        player.position.set(0, 1, 0);
+        scene.add(player);
 
-            const vertexBuffer = gl.createBuffer();
-            gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
-            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+        camera.position.y = 2;
+        camera.position.z = 5;
 
-            return vertexBuffer;
+        function animate() {
+            requestAnimationFrame(animate);
+            renderer.render(scene, camera);
         }
+        animate();
 
-        const shaderProgram = initShaders();
-        const vertexPositionAttribute = gl.getAttribLocation(shaderProgram, 'aVertexPosition');
-        gl.enableVertexAttribArray(vertexPositionAttribute);
-
-        const vertexBuffer = initBuffers(gl);
-        gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
-        gl.vertexAttribPointer(vertexPositionAttribute, 3, gl.FLOAT, false, 0, 0);
-
-        function drawScene() {
-            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-            gl.drawArrays(gl.TRIANGLES, 0, 3);
-        }
-
-        drawScene();
+        // Player controls
+        document.addEventListener('keydown', (event) => {
+            const speed = 0.1;
+            switch(event.key) {
+                case 'ArrowUp':
+                    player.position.z -= speed;
+                    break;
+                case 'ArrowDown':
+                    player.position.z += speed;
+                    break;
+                case 'ArrowLeft':
+                    player.position.x -= speed;
+                    break;
+                case 'ArrowRight':
+                    player.position.x += speed;
+                    break;
+            }
+        });
     </script>
 </body>
 </html>
-
