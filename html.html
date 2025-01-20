@@ -20,12 +20,26 @@
         renderer.setSize(window.innerWidth, window.innerHeight);
         document.body.appendChild(renderer.domElement);
 
-        // Create the ground (a 30x30 grid of blocks)
+        // Create custom textures (colors for simplicity)
+        const dirtTexture = new THREE.MeshBasicMaterial({ color: 0x8B4513 });
+        const stoneTexture = new THREE.MeshBasicMaterial({ color: 0x808080 });
+        const treeTexture = new THREE.MeshBasicMaterial({ color: 0x00FF00 });
+
+        // Generate a 30x30 world
         function createWorld() {
             for (let x = -15; x < 15; x++) {
                 for (let z = -15; z < 15; z++) {
+                    // Randomly select the type of block (dirt, stone, tree)
+                    const type = Math.random();
+                    let material;
+                    if (type < 0.6) {
+                        material = dirtTexture;
+                    } else if (type < 0.8) {
+                        material = stoneTexture;
+                    } else {
+                        material = treeTexture;
+                    }
                     const geometry = new THREE.BoxGeometry(1, 1, 1);
-                    const material = new THREE.MeshBasicMaterial({ color: 0x8B4513 }); // Dirt color
                     const block = new THREE.Mesh(geometry, material);
                     block.position.set(x, 0, z);
                     scene.add(block);
@@ -42,32 +56,31 @@
         scene.add(player);
 
         camera.position.y = 2;
-        camera.position.z = 5;
+        camera.position.z = 10;
+
+        // Movement variables
+        const moveSpeed = 0.1;
+        const keys = {};
 
         function animate() {
             requestAnimationFrame(animate);
+
+            // Move the player based on key inputs
+            if (keys['ArrowUp']) player.position.z -= moveSpeed;
+            if (keys['ArrowDown']) player.position.z += moveSpeed;
+            if (keys['ArrowLeft']) player.position.x -= moveSpeed;
+            if (keys['ArrowRight']) player.position.x += moveSpeed;
+
+            camera.position.x = player.position.x;
+            camera.position.z = player.position.z + 5;
+
             renderer.render(scene, camera);
         }
         animate();
 
-        // Player controls
-        document.addEventListener('keydown', (event) => {
-            const speed = 0.1;
-            switch(event.key) {
-                case 'ArrowUp':
-                    player.position.z -= speed;
-                    break;
-                case 'ArrowDown':
-                    player.position.z += speed;
-                    break;
-                case 'ArrowLeft':
-                    player.position.x -= speed;
-                    break;
-                case 'ArrowRight':
-                    player.position.x += speed;
-                    break;
-            }
-        });
+        // Handle key inputs
+        document.addEventListener('keydown', (event) => { keys[event.key] = true; });
+        document.addEventListener('keyup', (event) => { keys[event.key] = false; });
     </script>
 </body>
 </html>
